@@ -72,7 +72,7 @@ static void *find_fit(size_t asize);
 static void *extend_heap(size_t words);
 static void *coalesce(void *bp);
 static char* heap_listp;
-static char* prev_bp = NULL;
+// static char* prev_bp = NULL;
 
 int mm_init(void)
 {   
@@ -107,28 +107,46 @@ static void place(void *bp, size_t asize)
 
 static void *find_fit(size_t asize)
 {
-    void *bp = prev_bp ? prev_bp : heap_listp;
+    /* best fit */
+    void *result_bp = NULL;
+    void *bp = heap_listp;
     while(GET_SIZE(HDRP(bp)) > 0){
         if (!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp)))){
-            prev_bp = bp;
-            return bp;
+            if(result_bp != NULL && GET_SIZE(bp) < GET_SIZE(result_bp)){
+                result_bp = bp;
+            }
+            if(result_bp == NULL){
+                result_bp = bp;
+            }
         }
         bp = NEXT_BLKP(bp);
     }
-    bp = heap_listp;
-    while(GET_SIZE(HDRP(bp)) > 0){
-        if (!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp)))){
-            prev_bp = bp;
-            return bp;
-        }
-        bp = NEXT_BLKP(bp);
-    }
+
+    /* next fit */
+    // void *bp = prev_bp ? prev_bp : heap_listp;
+    // while(GET_SIZE(HDRP(bp)) > 0){
+    //     if (!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp)))){
+    //         prev_bp = bp;
+    //         return bp;
+    //     }
+    //     bp = NEXT_BLKP(bp);
+    // }
+    // bp = heap_listp;
+    // while(GET_SIZE(HDRP(bp)) > 0){
+    //     if (!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp)))){
+    //         prev_bp = bp;
+    //         return bp;
+    //     }
+    //     bp = NEXT_BLKP(bp);
+    // }
+    
+    /* first fit */
     // for (bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp)){
     //     if(!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp)))){
     //         return bp;
     //     }
     // }
-    return NULL;
+    return result_bp;
 }
 
 static void *extend_heap(size_t words)
@@ -202,7 +220,7 @@ static void *coalesce(void *bp)
 
         bp = PREV_BLKP(bp);
     }
-    prev_bp = bp;
+    // prev_bp = bp;
     return bp;
 }
 
